@@ -1,0 +1,122 @@
+[
+  {
+    "id": "1",
+    "student_id": "STU001",
+    "name": "Alice Johnson",
+    "grade": "A",
+    "group": "Group A",
+    "note": "High performer"
+  },
+  {
+    "id": "2",
+    "student_id": "STU002",
+    "name": "Bob Smith",
+    "grade": "B",
+    "group": "Group B",
+    "note": "Needs extra support"
+  },
+  {
+    "id": "3",
+    "student_id": "STU003",
+    "name": "Carol Williams",
+    "grade": "A",
+    "group": "Group A",
+    "note": "Excellent in math"
+  },
+  {
+    "id": "4",
+    "student_id": "STU004",
+    "name": "David Brown",
+    "grade": "B",
+    "group": "Group B",
+    "note": "Prefers front seat"
+  },
+  {
+    "id": "5",
+    "student_id": "STU005",
+    "name": "Emma Davis",
+    "grade": "C",
+    "group": "Group C",
+    "note": "Needs hearing assistance"
+  },
+  {
+    "id": "6",
+    "student_id": "STU006",
+    "name": "Frank Martinez",
+    "grade": "A",
+    "group": "Group A",
+    "note": "Team leader"
+  },
+  {
+    "id": "7",
+    "student_id": "STU007",
+    "name": "Grace Lee",
+    "grade": "B",
+    "group": "Group B",
+    "note": "Creative thinking"
+  },
+  {
+    "id": "8",
+    "student_id": "STU008",
+    "name": "Henry Chen",
+    "grade": "A",
+    "group": "Group A",
+    "note": "Strong in science"
+  },
+  {
+    "id": "9",
+    "student_id": "STU009",
+    "name": "Ivy Taylor",
+    "grade": "B",
+    "group": "Group B",
+    "note": "Friendly, collaborative"
+  },
+  {
+    "id": "10",
+    "student_id": "STU010",
+    "name": "Jack Anderson",
+    "grade": "C",
+    "group": "Group C",
+    "note": "Needs mobility space"
+  },
+  {
+    "id": "11",
+    "student_id": "STU011",
+    "name": "Karen White",
+    "grade": "A",
+    "group": "Group A",
+    "note": "Excellent in literature"
+  },
+  {
+    "id": "12",
+    "student_id": "STU012",
+    "name": "Leo Harris",
+    "grade": "B",
+    "group": "Group B",
+    "note": "Talkative, extroverted"
+  },
+  {
+    "id": "13",
+    "student_id": "STU013",
+    "name": "Maya Patel",
+    "grade": "A",
+    "group": "Group A",
+    "note": "Quiet, introspective"
+  },
+  {
+    "id": "14",
+    "student_id": "STU014",
+    "name": "Nathan Green",
+    "grade": "C",
+    "group": "Group C",
+    "note": "Needs front seat"
+  },
+  {
+    "id": "15",
+    "student_id": "STU015",
+    "name": "Olivia Black",
+    "grade": "B",
+    "group": "Group B",
+    "note": "Athletic, active"
+  }
+]

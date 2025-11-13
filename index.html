@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classroom Seating Chart Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Container for entire application -->
+  <div id="app-container" class="app-container">
+    <!-- Top Toolbar -->
+    <header class="toolbar toolbar-top" role="toolbar" aria-label="Main toolbar">
+      <div class="toolbar-group">
+        <button id="btn-new-classroom" class="btn btn-primary" aria-label="Create new classroom">
+          <span class="btn-icon">📋</span> New Classroom
+        </button>
+        <button id="btn-import" class="btn btn-secondary" aria-label="Import students from CSV or JSON">
+          <span class="btn-icon">📥</span> Import
+        </button>
+        <button id="btn-export" class="btn btn-secondary" aria-label="Export seating chart">
+          <span class="btn-icon">📤</span> Export
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-undo" class="btn btn-secondary" aria-label="Undo last action (Ctrl+Z)">
+          <span class="btn-icon">↶</span> Undo
+        </button>
+        <button id="btn-redo" class="btn btn-secondary" aria-label="Redo last action (Ctrl+Y)">
+          <span class="btn-icon">↷</span> Redo
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-auto-group" class="btn btn-secondary" aria-label="Automatically assign students to seats">
+          <span class="btn-icon">🔀</span> Auto-Group
+        </button>
+        <button id="btn-rotate-seats" class="btn btn-secondary" aria-label="Rotate seating arrangement">
+          <span class="btn-icon">🔄</span> Rotate
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-toggle-labels" class="btn btn-secondary" aria-label="Toggle student name labels on seats">
+          <span class="btn-icon">🏷️</span> Names
+        </button>
+        <button id="btn-high-contrast" class="btn btn-secondary" aria-label="Toggle high contrast mode for accessibility">
+          <span class="btn-icon">◐</span> Contrast
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-print" class="btn btn-secondary" aria-label="Print seating chart (Ctrl+P)">
+          <span class="btn-icon">🖨️</span> Print
+        </button>
+        <button id="btn-presentation" class="btn btn-secondary" aria-label="Enter presentation mode">
+          <span class="btn-icon">🎬</span> Present
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-save" class="btn btn-success" aria-label="Save classroom to local storage">
+          <span class="btn-icon">💾</span> Save
+        </button>
+      </div>
+
+      <div class="toolbar-group">
+        <select id="mode-select" class="btn-select" aria-label="Select user mode">
+          <option value="teacher">👨‍🏫 Teacher (Edit)</option>
+          <option value="viewer">👁️ Viewer (Read-only)</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="content-wrapper">
+      <!-- Main Canvas -->
+      <main class="main-canvas" id="main-canvas" role="main" aria-label="Seating chart canvas">
+        <div class="canvas-header">
+          <h2 id="classroom-title">Classroom Seating Chart</h2>
+          <p id="classroom-info" class="info-text"></p>
+        </div>
+        <div class="seats-container" id="seats-container" role="grid" aria-label="Seating grid"></div>
+      </main>
+
+      <!-- Right Sidebar Panel -->
+      <aside class="right-panel" role="complementary" aria-label="Students panel">
+        <div class="panel-section">
+          <h3>Unassigned Students</h3>
+          <div class="filter-controls">
+            <input type="text" id="filter-students" class="input-text" placeholder="Search students..." aria-label="Filter students by name or ID">
+            <select id="filter-grade" class="input-select" aria-label="Filter by grade">
+              <option value="">All Grades</option>
+            </select>
+            <select id="filter-group" class="input-select" aria-label="Filter by group">
+              <option value="">All Groups</option>
+            </select>
+          </div>
+          <div class="students-list" id="unassigned-students" role="list" aria-label="List of unassigned students"></div>
+        </div>
+
+        <div class="panel-section">
+          <h3>Grouping Options</h3>
+          <button id="btn-group-random" class="btn-block btn btn-secondary" aria-label="Group students randomly">
+            Random
+          </button>
+          <button id="btn-group-by-name" class="btn-block btn btn-secondary" aria-label="Group students alphabetically by name">
+            By Name
+          </button>
+          <button id="btn-group-by-gender" class="btn-block btn btn-secondary" aria-label="Group students by gender">
+            By Gender
+          </button>
+          <button id="btn-group-by-performance" class="btn-block btn btn-secondary" aria-label="Group students by performance level">
+            By Performance
+          </button>
+        </div>
+
+        <div class="panel-section">
+          <h3>Statistics</h3>
+          <div class="stats-box">
+            <p><span>Total Students:</span> <strong id="stat-total">0</strong></p>
+            <p><span>Assigned:</span> <strong id="stat-assigned">0</strong></p>
+            <p><span>Unassigned:</span> <strong id="stat-unassigned">0</strong></p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Classroom Setup Modal -->
+  <div id="modal-classroom-setup" class="modal" role="dialog" aria-labelledby="modal-classroom-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-classroom-title">Create New Classroom</h2>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="classroom-name">Classroom Name</label>
+          <input type="text" id="classroom-name" class="input-text" placeholder="e.g., Grade 5A" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="classroom-rows">Number of Rows</label>
+            <input type="number" id="classroom-rows" class="input-text" min="1" max="20" value="4" required>
+          </div>
+          <div class="form-group">
+            <label for="classroom-cols">Number of Columns</label>
+            <input type="number" id="classroom-cols" class="input-text" min="1" max="20" value="5" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="seat-size">Seat Size (px)</label>
+            <input type="number" id="seat-size" class="input-text" min="40" max="150" value="80" required>
+          </div>
+          <div class="form-group">
+            <label for="seat-spacing">Spacing (px)</label>
+            <input type="number" id="seat-spacing" class="input-text" min="5" max="50" value="15" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="classroom-layout">Layout Type</label>
+            <select id="classroom-layout" class="input-select">
+              <option value="grid">Grid (Rows & Columns)</option>
+              <option value="cluster">Cluster (Group desks)</option>
+              <option value="circle">Circle</option>
+              <option value="horseshoe">Horseshoe</option>
+              <option value="u-shape">U-Shape</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="classroom-orientation">Orientation</label>
+          <select id="classroom-orientation" class="input-select">
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-cancel-classroom" class="btn btn-secondary">Cancel</button>
+        <button id="btn-modal-create-classroom" class="btn btn-primary">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div id="modal-import" class="modal" role="dialog" aria-labelledby="modal-import-title" aria-hidden="true">
+    <div class="modal-content modal-content-large">
+      <div class="modal-header">
+        <h2 id="modal-import-title">Import Students</h2>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="import-tabs">
+          <button class="import-tab-btn active" data-tab="csv">CSV Format</button>
+          <button class="import-tab-btn" data-tab="json">JSON Format</button>
+          <button class="import-tab-btn" data-tab="paste">Paste Data</button>
+        </div>
+
+        <div class="import-tab-content" id="tab-csv" style="display: block;">
+          <p class="info-text">Upload a CSV file with columns: id, student_id, name, grade, group, note</p>
+          <input type="file" id="csv-file" class="input-file" accept=".csv" aria-label="Upload CSV file">
+          <div id="csv-preview" class="import-preview"></div>
+        </div>
+
+        <div class="import-tab-content" id="tab-json" style="display: none;">
+          <p class="info-text">Upload a JSON file with array of student objects</p>
+          <input type="file" id="json-file" class="input-file" accept=".json" aria-label="Upload JSON file">
+          <div id="json-preview" class="import-preview"></div>
+        </div>
+
+        <div class="import-tab-content" id="tab-paste" style="display: none;">
+          <p class="info-text">Paste CSV or JSON data directly:</p>
+          <textarea id="paste-data" class="input-textarea" placeholder="Paste CSV or JSON here..." rows="10" aria-label="Paste import data"></textarea>
+          <div id="paste-preview" class="import-preview"></div>
+        </div>
+
+        <div id="import-errors" class="error-box" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-cancel-import" class="btn btn-secondary">Cancel</button>
+        <button id="btn-modal-import-confirm" class="btn btn-primary">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="modal-export" class="modal" role="dialog" aria-labelledby="modal-export-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-export-title">Export Seating Chart</h2>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="export-options">
+          <label class="checkbox-label">
+            <input type="checkbox" id="export-json" checked aria-label="Export as JSON">
+            JSON (Data & Layout)
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="export-csv" checked aria-label="Export as CSV">
+            CSV (Students & Seats)
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="export-png" aria-label="Export as PNG image">
+            PNG Image
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="export-pdf" aria-label="Export as PDF">
+            PDF (Print-friendly)
+          </label>
+        </div>
+        <div id="export-preview" class="export-preview"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-cancel-export" class="btn btn-secondary">Cancel</button>
+        <button id="btn-modal-export-confirm" class="btn btn-primary">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Details Modal -->
+  <div id="modal-student-details" class="modal" role="dialog" aria-labelledby="modal-student-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-student-title">Student Details</h2>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="student-id">ID</label>
+          <input type="text" id="student-id" class="input-text" disabled>
+        </div>
+        <div class="form-group">
+          <label for="student-student-id">Student ID</label>
+          <input type="text" id="student-student-id" class="input-text">
+        </div>
+        <div class="form-group">
+          <label for="student-name">Name</label>
+          <input type="text" id="student-name" class="input-text">
+        </div>
+        <div class="form-group">
+          <label for="student-grade">Grade</label>
+          <input type="text" id="student-grade" class="input-text">
+        </div>
+        <div class="form-group">
+          <label for="student-group">Group</label>
+          <input type="text" id="student-group" class="input-text">
+        </div>
+        <div class="form-group">
+          <label for="student-note">Notes</label>
+          <textarea id="student-note" class="input-textarea" rows="3" placeholder="e.g., needs front seat, special needs"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="student-locked" aria-label="Lock this student in their current seat">
+            Lock this student in current seat
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-student-delete" class="btn btn-danger">Delete</button>
+        <button id="btn-modal-cancel-student" class="btn btn-secondary">Cancel</button>
+        <button id="btn-modal-save-student" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auto-Group Modal -->
+  <div id="modal-auto-group" class="modal" role="dialog" aria-labelledby="modal-autogroup-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-autogroup-title">Automatic Grouping</h2>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Select grouping strategy:</p>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="group-strategy" value="random" checked>
+            Random Assignment
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="group-strategy" value="name">
+            Alphabetical by Name
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="group-strategy" value="gender">
+            Group by Gender
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="group-strategy" value="performance">
+            By Performance Level
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="group-strategy" value="rotate">
+            Rotate from Last Assignment
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-cancel-autogroup" class="btn btn-secondary">Cancel</button>
+        <button id="btn-modal-confirm-autogroup" class="btn btn-primary">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rotation Modal -->
+  <div id="modal-rotate" class="modal" role="dialog" aria-labelledby="modal-rotate-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-rotate-title">Rotate Seating</h2>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Select rotation strategy:</p>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="rotate-strategy" value="rows" checked>
+            Rotate Between Rows
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="rotate-strategy" value="clusters">
+            Rotate Between Clusters
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="rotate-strategy" value="shuffle">
+            Shuffle All Students
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-cancel-rotate" class="btn btn-secondary">Cancel</button>
+        <button id="btn-modal-confirm-rotate" class="btn btn-primary">Rotate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presentation Mode Modal -->
+  <div id="modal-presentation" class="modal modal-fullscreen" role="dialog" aria-hidden="true">
+    <div class="presentation-content">
+      <button id="btn-exit-presentation" class="btn btn-secondary presentation-exit" aria-label="Exit presentation mode">✕ Exit</button>
+      <div class="presentation-canvas" id="presentation-canvas"></div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Help -->
+  <div id="modal-help" class="modal" role="dialog" aria-labelledby="modal-help-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-help-title">Keyboard Shortcuts</h2>
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table class="shortcuts-table">
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+          </tr>
+          <tr>
+            <td><kbd>Ctrl+Z</kbd></td>
+            <td>Undo</td>
+          </tr>
+          <tr>
+            <td><kbd>Ctrl+Y</kbd></td>
+            <td>Redo</td>
+          </tr>
+          <tr>
+            <td><kbd>Ctrl+S</kbd></td>
+            <td>Save</td>
+          </tr>
+          <tr>
+            <td><kbd>Ctrl+P</kbd></td>
+            <td>Print</td>
+          </tr>
+          <tr>
+            <td><kbd>Tab</kbd></td>
+            <td>Navigate between elements</td>
+          </tr>
+          <tr>
+            <td><kbd>Arrow Keys</kbd></td>
+            <td>Move selected seat or student</td>
+          </tr>
+          <tr>
+            <td><kbd>Shift + Click</kbd></td>
+            <td>Multi-select seats</td>
+          </tr>
+          <tr>
+            <td><kbd>Double Click</kbd></td>
+            <td>Edit student details</td>
+          </tr>
+          <tr>
+            <td><kbd>Delete</kbd></td>
+            <td>Remove selected student</td>
+          </tr>
+          <tr>
+            <td><kbd>?</kbd></td>
+            <td>Show this help</td>
+          </tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-close-help" class="btn btn-primary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
